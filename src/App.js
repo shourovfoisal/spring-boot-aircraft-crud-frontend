@@ -4,6 +4,8 @@ import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Aircrafts from './components/Aircrafts/Aircrafts';
 import { useState } from 'react';
+import Passengers from './components/Passengers/Passengers';
+import Reserves from './components/Reserves/Reserves';
 
 
 function App() {
@@ -11,14 +13,16 @@ function App() {
   const [contentType, setContentType] = useState(1);
   
   const content = {
-    1: <Aircrafts />
+    1: <Aircrafts />,
+    2: <Passengers />,
+    3: <Reserves />,
   }
   
   return (
     <div className='App'>
       <Container>
         <div className='nav-menu'>
-          <Row className='g-0'>
+          <Row className='g-1'>
             <Col>
               <div className='nav-item' onClick={() => setContentType(1)}>
                 Aircrafts

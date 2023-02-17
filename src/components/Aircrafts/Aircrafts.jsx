@@ -15,13 +15,14 @@ const Aircrafts = () => {
     const [openAddModal, setOpenAddModal] = useState(false);
     
     const [nameInput, setNameInput] = useState("");
-    const [aircraftTypeInput, setAircraftTypeInput] = useState(null);
+    const [aircraftTypeInput, setAircraftTypeInput] = useState(0);
+    const [aircraftTypeSearchInput, setAircraftTypeSearchInput] = useState(0);
     
-    const [aircraftTypeList, setAircraftTypeList] = useState([]);
+    const [aircraftTypes, setAircraftTypes] = useState([]);
     
-    const getAircrafts = () => {
+    const getAircrafts = (param="") => {
         
-        fetch(`${apiPath()}/aircrafts`, {
+        fetch(`${apiPath()}/aircrafts${param === "?" ? "" : param}`, {
             method: 'GET'
         })
         .then((response) => response.json())
@@ -34,26 +35,44 @@ const Aircrafts = () => {
         
     }
     
-    useEffect(() => {
-        getAircrafts();
-    }, [aircrafts])
-    
-    useEffect(() => {
-        
+    const getAircraftTypes = () => {
         fetch(`${apiPath()}/aircraft-types`, {
             method: 'GET'
         })
         .then((response) => response.json())
         .then((data) => {
-            setAircraftTypeList(data);
+            setAircraftTypes(data);
         })
         .catch((error) => {
             console.error('Error:', error);
         });
-        
+    }
+    
+    useEffect(() => {
+        getAircraftTypes();
+        getAircrafts();
     }, []);
     
+    const aircraftSearch = () => {
+        
+        const searchTerm = parseInt(aircraftTypeSearchInput);
+        
+        let param = "?";
+        
+        if(searchTerm !== 0) {
+            param += `type_id=${searchTerm}`;
+        }
+        
+        // let param = searchTerm !== 0 ? `?type_id=${searchTerm}` : "";
+        getAircrafts(param);
+    }
+    
     const handleAdd = () => {
+        
+        if(nameInput === "") {
+            alert("Enter name!");
+            return;
+        }
         
         if(!aircraftTypeInput) {
             alert("Select aircraft type!");
@@ -78,8 +97,11 @@ const Aircrafts = () => {
         .then(response => response.text())
         .then(result => {
             console.log(result);
-            setOpenAddModal(false)
             getAircrafts();
+            
+            setOpenAddModal(false);
+            setNameInput("");
+            setAircraftTypeInput(0);
         })
         .catch(error => console.log('error', error));
     }
@@ -88,7 +110,7 @@ const Aircrafts = () => {
     <>
         <Modal show={openAddModal} onHide={() => setOpenAddModal(false)}>
             <Modal.Header closeButton>
-                <Modal.Title>Edit Aircraft</Modal.Title>
+                <Modal.Title>Add Aircraft</Modal.Title>
             </Modal.Header>
             
             <Modal.Body>
@@ -117,9 +139,9 @@ const Aircrafts = () => {
                         >
                             <option>Select One</option>
                             {
-                                aircraftTypeList.map((aType, idx) => 
+                                aircraftTypes.map(aType => 
                                     <option 
-                                        key={idx} 
+                                        key={aType.id} 
                                         value={aType.id}
                                     >
                                         {aType.name}
@@ -146,25 +168,56 @@ const Aircrafts = () => {
             <Col>
                 <Button variant="success" onClick={() => setOpenAddModal(true)}>Add Aircraft</Button>
             </Col>
-            <Col></Col>
+            <Col>
+                <Row>
+                    <Col></Col>
+                    <Col style={{display: "flex", gap: "0.5rem"}}>
+                        <Form.Select 
+                            onChange={(e) => setAircraftTypeSearchInput(e.target.value)} 
+                            aria-label="Aircraft Type Select"
+                        >
+                            <option selected value="0">All Types</option>
+                            {
+                                aircraftTypes.map(aType => 
+                                    <option 
+                                        key={aType.id} 
+                                        value={aType.id}
+                                    >
+                                        {aType.name}
+                                    </option>
+                                )
+                            }
+                        </Form.Select>
+                        <Button variant='warning' onClick={aircraftSearch}>Search</Button>
+                    </Col>
+                </Row>
+            </Col>
         </Row>
         </div>
         
         <Table striped bordered hover variant="dark">
-        <thead>
-            <tr>
-                <th className='fit'>#</th>
-                <th>Name</th>
-                <th>Type</th>
-                <th className='fit'>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {
-                aircrafts.map((aircraft, idx) => <Aircraft getAircrafts={getAircrafts} key={idx} aircraft={aircraft} idx={idx} />)
-            }
-        </tbody>
-    </Table>
+            <thead>
+                <tr>
+                    <th className='fit'>#</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th className='fit'>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {
+                    aircrafts.map((aircraft, idx) => 
+                        <Aircraft 
+                            aircraftTypes={aircraftTypes} 
+                            getAircrafts={getAircrafts} 
+                            key={aircraft.id} 
+                            aircraft={aircraft} 
+                            idx={idx} 
+                        />
+                    )
+                }
+            </tbody>
+        </Table>
     </>
   )
 }

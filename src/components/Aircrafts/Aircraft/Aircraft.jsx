@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
 import { apiPath } from '../../../libs/apiPath';
 
-const Aircraft = ({getAircrafts, aircraft, idx}) => {
+const Aircraft = ({aircraftTypes, getAircrafts, aircraft, idx}) => {
     
     const {name, aircraftType, id} = aircraft;
     const [openUpdateModal, setOpenUpdateModal] = useState(false);
@@ -14,25 +14,13 @@ const Aircraft = ({getAircrafts, aircraft, idx}) => {
     const [nameInput, setNameInput] = useState(name);
     const [aircraftTypeInput, setAircraftTypeInput] = useState(aircraftType.id);
     
-    const [aircraftTypeList, setAircraftTypeList] = useState([]);
-    
-    useEffect(() => {
-        
-        fetch(`${apiPath()}/aircraft-types`, {
-            method: 'GET'
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            setAircraftTypeList(data);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-        });
-        
-    }, []);
-    
     
     const handleUpdate = () => {
+        
+        if(nameInput === "") {
+            alert("Enter name!");
+            return;
+        }
         
         const payload = {
             name: nameInput,
@@ -52,8 +40,9 @@ const Aircraft = ({getAircrafts, aircraft, idx}) => {
         .then(response => response.text())
         .then(result => {
             console.log(result);
-            setOpenUpdateModal(false);
             getAircrafts();
+            
+            setOpenUpdateModal(false);
         })
         .catch(error => console.log('error', error));
         
@@ -66,8 +55,8 @@ const Aircraft = ({getAircrafts, aircraft, idx}) => {
         .then(res => res.json())
         .then(data => {
             console.log(data);
-            setOpenDeleteModal(false);
             getAircrafts();
+            setOpenDeleteModal(false);
         })
         .catch(err => console.log(err));
     }
@@ -104,9 +93,9 @@ const Aircraft = ({getAircrafts, aircraft, idx}) => {
                             aria-label="Aircraft Type Select"
                         >
                             {
-                                aircraftTypeList.map((aType, idx) => 
+                                aircraftTypes.map(aType => 
                                     <option 
-                                        key={idx} 
+                                        key={aType.id} 
                                         value={aType.id}
                                         selected={aType.id === aircraftType.id}
                                     >
@@ -145,16 +134,16 @@ const Aircraft = ({getAircrafts, aircraft, idx}) => {
         </Modal>
     
         <tr>
-        <td>{idx+1}</td>
-        <td>{name}</td>
-        <td>{aircraftType.name}</td>
-        <td>
-            <ButtonGroup>
-                <Button onClick={() => setOpenUpdateModal(true)} variant="primary" size='sm'>Update</Button>
-                <Button onClick={() => setOpenDeleteModal(true)} variant="danger" size='sm'>Delete</Button>
-            </ButtonGroup>
-        </td>
-    </tr>
+            <td>{idx+1}</td>
+            <td>{name}</td>
+            <td>{aircraftType.name}</td>
+            <td>
+                <ButtonGroup>
+                    <Button onClick={() => setOpenUpdateModal(true)} variant="primary" size='sm'>Update</Button>
+                    <Button onClick={() => setOpenDeleteModal(true)} variant="danger" size='sm'>Delete</Button>
+                </ButtonGroup>
+            </td>
+        </tr>
     </>
   )
 }
